@@ -1,5 +1,5 @@
 
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import Searchbar from './components/Searchbar';
 import ImageGallery from './components/ImageGallery';
 import Loader from "react-loader-spinner";
@@ -9,62 +9,61 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from './components/servises/getData';
 
-class App extends Component {
-  state = {
-    value: '',
-    loader: false,
-    pictures: [],
-    modal: false,
-    contentModal: '',
-    page: 1, 
-  };
+const App = () => {
+  const [value,setValue] = useState('');
+  const [loader,setLoader] = useState(false);
+  const [pictures,setPictures] = useState([]);
+  const [modal,setModal] = useState(false);
+  const [contentModal,setContentModal] = useState('');
+  const [page,setPage] = useState(1);
   
-  componentDidUpdate(prevProps, prevState) {
-    const { value, page } = this.state;
+  useEffect(() => {
+    if (value === '') return;
+    else {
+      setLoader(true);
 
-    if (value !== prevState.value || page !== prevState.page) {
-
-      this.setState((prevState) => ({ page: (value === prevState.value) ? (prevState.page) : 1, loader: true }))
-
-      api.getData(value,page).then((data) => {
-        this.setState({
-          pictures: page === 1 ? data.hits : [...this.state.pictures, ...data.hits],
-        }); toast(`We are find ${this.state.pictures.length} images from ${data.total}`);
-        })
+      // Андрей, я помню твое замечание - вінести в отдельній метод.
+      //   немного отстаю - разберусь с кастомными хуками и хочу запилить его в кастомный хук.
+      //   Проверь пожалуйста остальное, чтоб я знал, что кроме этого исправить
+      
+      api.getData(value, page).then((data) => {
+        if (data.total === 0) {
+          toast(`There is no pictures-'${value}'`);
+          return;
+        }
+        page === 1 ? setPictures(data.hits) : setPictures([...pictures, ...data.hits]);
+        toast(`We are find ${pictures.length} images from ${data.total}`);
+      })
         .catch((error) => console.log(error))
-        .finally(() => { this.setState({ loader: false }); })
-    } 
-  }
-  
-  submitForm = (value) => {
-    this.setState({ value,page:1 })
-  }
- 
-  givelargeImage = (contentModal) => {
-    
-    this.setState((prevState)=>({contentModal,modal:!prevState.modal}))
-  }
+        .finally(() => setLoader(false))
+    };
 
-  pagination = () => {
-    this.setState((prevState) => ({ page: prevState.page + 1 }));
     
-  };
+  }, [value, page]);
  
-  render() {
-    const {loader,pictures,modal,contentModal} = this.state;
+  const submitForm = (value) => {
+    setValue(value);
+    setPage(1);
+  }
+ 
+ 
+  const modalFunc=(src) => {
+    setContentModal(src);
+    setModal(!modal);
+    }
     
     return (
       <section className='App'>
 
-      <Searchbar  onSubmit={this.submitForm} />
+      <Searchbar  onSubmit={submitForm} />
       
         {pictures.length >= 1 &&
           <ImageGallery
-            items={pictures}
-            modalFn={this.givelargeImage} />}
+          items={pictures}
+          modalFn={modalFunc} />}
         
         {pictures.length >= 11 &&
-          <Button onClickFn={this.pagination}>Load more</Button>}
+          <Button onClickFn={()=>setPage(page+1)}>Load more</Button>}
         
         {loader &&
           <Loader className='loader'
@@ -78,13 +77,13 @@ class App extends Component {
         {modal &&
           <Modal
             src={contentModal}
-            onClick={this.givelargeImage}
-            onClose={this.givelargeImage} />}
+            onClick={()=>setModal(!modal)}
+             />}
         
         <ToastContainer />
         
     </section>)
-  }
+  
 }
 
 export default App;
