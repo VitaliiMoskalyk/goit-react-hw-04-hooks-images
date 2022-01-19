@@ -8,7 +8,6 @@ import Button from './components/Button';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from './components/servises/getData';
-import useDataLoader from './components/servises/useDataLoader'
 
 const App = () => {
   const [value,setValue] = useState('');
@@ -72,7 +71,7 @@ const App = () => {
           modalFn={modalFunc} />}
         
         {pictures.length >= 11 &&
-          <Button onClickFn={()=>setPage(page+1)}>Load more</Button>}
+          <Button onClickFn={()=>setPage(prevState=>prevState+1)}>Load more</Button>}
         
         {loader &&
           <Loader className='loader'
