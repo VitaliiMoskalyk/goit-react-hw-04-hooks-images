@@ -8,6 +8,7 @@ import Button from './components/Button';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import api from './components/servises/getData';
+import useDataLoader from './components/servises/useDataLoader'
 
 const App = () => {
   const [value,setValue] = useState('');
@@ -17,9 +18,12 @@ const App = () => {
   const [contentModal,setContentModal] = useState('');
   const [page,setPage] = useState(1);
   
+ 
+
   useEffect(() => {
     if (value === '') return;
     else {
+      
       setLoader(true);
 
       // Андрей, я помню твое замечание - вінести в отдельній метод.
@@ -27,12 +31,15 @@ const App = () => {
       //   Проверь пожалуйста остальное, чтоб я знал, что кроме этого исправить
       
       api.getData(value, page).then((data) => {
+        
         if (data.total === 0) {
           toast(`There is no pictures-'${value}'`);
           return;
         }
-        page === 1 ? setPictures(data.hits) : setPictures([...pictures, ...data.hits]);
-        toast(`We are find ${pictures.length} images from ${data.total}`);
+        
+  
+        page === 1 ? setPictures(data.hits) : setPictures((prevState)=>[...prevState, ...data.hits]);
+        toast(`We are find ${data.hits.length} images from ${data.total}`);
       })
         .catch((error) => console.log(error))
         .finally(() => setLoader(false))
@@ -40,6 +47,8 @@ const App = () => {
 
     
   }, [value, page]);
+
+     
  
   const submitForm = (value) => {
     setValue(value);
@@ -49,7 +58,7 @@ const App = () => {
  
   const modalFunc=(src) => {
     setContentModal(src);
-    setModal(!modal);
+    setModal(prevState=>!prevState);
     }
     
     return (
@@ -77,7 +86,7 @@ const App = () => {
         {modal &&
           <Modal
             src={contentModal}
-            onClick={()=>setModal(!modal)}
+            onClick={()=>setModal(prevState=>!prevState)}
              />}
         
         <ToastContainer />
