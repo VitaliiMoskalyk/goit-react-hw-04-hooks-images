@@ -1,20 +1,33 @@
 import api from "./getData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
-const useDataLoader = ({ value, page, array, arrayPushFn, toasterFn }) => {
-  api
-    .getData(value, page)
-    .then((data) => {
-      if (data.total === 0) {
-        toasterFn(`There is no pictures-'${value}'`);
-        return;
-      }
-      page === 1
-        ? arrayPushFn(data.hits)
-        : arrayPushFn([...array, ...data.hits]);
-      toasterFn(`We are find ${array.length} images from ${data.total}`);
-    })
-    .catch((error) => console.log(error));
+const useDataLoader = (value, page) => {
+  const [pictures, setPictures] = useState([]);
+  const [loader, setLoader] = useState(false);
+  useEffect(() => {
+    if (value === "") return;
+    else {
+      setLoader(true);
+      api
+        .getData(value, page)
+        .then((data) => {
+          if (data.total === 0) {
+            toast(`There is no pictures-'${value}'`);
+            return;
+          }
+
+          page === 1
+            ? setPictures(data.hits)
+            : setPictures((prevState) => [...prevState, ...data.hits]);
+          toast(`We are find ${data.hits.length} images from ${data.total}`);
+        })
+        .catch((error) => console.log(error))
+        .finally(() => setLoader(false));
+    }
+  }, [value, page]);
+
+  return [pictures, loader];
 };
 
 export default useDataLoader;
