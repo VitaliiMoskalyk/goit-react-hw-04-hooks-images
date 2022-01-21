@@ -7,14 +7,14 @@ import Modal from './components/Modal';
 import Button from './components/Button';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import useDataLoader from './components/servises/useDataLoader'
+import useDataLoader from './servises/useDataLoader'
 
 const App = () => {
   const [value,setValue] = useState('');
   const [modal,setModal] = useState(false);
   const [contentModal,setContentModal] = useState('');
   const [page,setPage] = useState(1);
-  const [pictures,loader] = useDataLoader(value,page);
+  const [pictures,loader,error] = useDataLoader(value,page);
 
 
   const submitForm = (value) => {
@@ -25,22 +25,30 @@ const App = () => {
  
   const modalFunc=(src) => {
     setContentModal(src);
-    setModal(prevState=>!prevState);
+    setModal(prevState => !prevState);
     }
     
+  const modalContent = () => {
+    setModal(prevState=>!prevState)
+  }
+  
+  const loadMore = () => {
+    setPage(prevState=>prevState+1)
+
+  }
     return (
       <section className='App'>
-
+       
       <Searchbar  onSubmit={submitForm} />
-      
+        
         {pictures.length >= 1 &&
           <ImageGallery
           items={pictures}
           modalFn={modalFunc} />}
         
         {pictures.length >= 11 &&
-          <Button onClickFn={()=>setPage(prevState=>prevState+1)}>Load more</Button>}
-        
+          <Button onClickFn={loadMore}>Load more</Button>}
+         {error && <p>Something bad....</p>}
         {loader &&<div className='loader-wrapper'>
           <Loader className='loader'
         type="Circles"
@@ -53,7 +61,7 @@ const App = () => {
         {modal &&
           <Modal
             src={contentModal}
-            onClick={()=>setModal(prevState=>!prevState)}
+            onClick={modalContent}
              />}
         
         <ToastContainer />

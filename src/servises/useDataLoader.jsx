@@ -5,10 +5,13 @@ import { toast } from "react-toastify";
 const useDataLoader = (value, page) => {
   const [pictures, setPictures] = useState([]);
   const [loader, setLoader] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     if (value === "") return;
     else {
       setLoader(true);
+      setError(null);
       api
         .getData(value, page)
         .then((data) => {
@@ -22,12 +25,12 @@ const useDataLoader = (value, page) => {
             : setPictures((prevState) => [...prevState, ...data.hits]);
           toast(`We are find ${data.hits.length} images from ${data.total}`);
         })
-        .catch((error) => console.log(error))
+        .catch((error) => setError(error))
         .finally(() => setLoader(false));
     }
   }, [value, page]);
 
-  return [pictures, loader];
+  return [pictures, loader, error];
 };
 
 export default useDataLoader;
